@@ -1,0 +1,35 @@
+# IAOP Alert Rules (example)
+#
+# Prometheus alerting rules for the IAOP platform. Load into Prometheus
+# or adapt to your alertmanager. Thresholds are starting points — tune
+# per environment.
+
+groups:
+  - name: iaop.availability
+    rules:
+      - alert: ServiceDown
+        expr: up{job="iaop-services"} == 0
+        for: 2m
+        labels:
+          severity: critical
+        annotations:
+          summary: "IAOP service {{ $labels.service }} is down"
+          description: "Target {{ $labels.instance }} has been down for >2m."
+
+      - alert: HighErrorRate
+        expr: |
+          sum(rate(http_server_request_duration_count{http_response_status_code=~"5.."}[5m]))
+            / sum(rate(http_server_request_duration_count[5m])) > 0.05
+        for: 10m
+        labels:
+          severity: warning
+        annotations:
+          summary: "High 5xx rate on {{ $labels.service }}"
+
+      - alert: ReadinessFailing
+        expr: probe_success{probe_type="readiness"} == 0
+        for: 5m
+        labels:
+          severity: warning
+        annotations:
+          summary: "Readiness probe failing"

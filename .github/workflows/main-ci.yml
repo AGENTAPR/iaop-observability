@@ -1,0 +1,28 @@
+name: Main CI
+
+# Validates observability configs. Runs ONLY on pushes to main.
+on:
+  push:
+    branches:
+      - main
+
+permissions:
+  contents: read
+
+concurrency:
+  group: main-ci-${{ github.repository }}
+  cancel-in-progress: true
+
+jobs:
+  validate:
+    name: Config validation
+    if: github.ref == 'refs/heads/main'
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Validate collector config YAML
+        run: python -c "import yaml,sys; yaml.safe_load(open('otel-collector-config.yaml'))"
+      - name: Validate prometheus config YAML
+        run: python -c "import yaml,sys; yaml.safe_load(open('prometheus.yml'))"
+      - name: Validate alert rules YAML
+        run: python -c "import yaml,sys; yaml.safe_load(open('alerts/iaop-alerts.yml'))"

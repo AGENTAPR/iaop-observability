@@ -1,0 +1,23 @@
+# Example Prometheus scrape config for IAOP services.
+# Each Rust service exposes /metrics when the `metrics` feature/exporter
+# is enabled (OTEL metrics -> collector -> this endpoint).
+
+global:
+  scrape_interval: 15s
+  evaluation_interval: 15s
+
+scrape_configs:
+  - job_name: otel-collector
+    static_configs:
+      - targets: ["otel-collector:8889"]
+
+  - job_name: iaop-services
+    metrics_path: /metrics
+    static_configs:
+      # Populate with running service instances; example entries:
+      - targets: ["host.docker.internal:8082"]
+        labels:
+          service: iaop-agent-service
+      - targets: ["host.docker.internal:8083"]
+        labels:
+          service: iaop-workflow-service
